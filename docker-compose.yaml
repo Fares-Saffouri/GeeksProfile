@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   web:
-    image: fares111/geeksprofile
+    image: fares111/geeksprofile:geeksprofile
     ports:
       - "8000:5000"
     environment:
