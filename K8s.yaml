@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: GeeksProfile
+  labels:
+    app: GeeksProfile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: GeeksProfile
+  template:
+    metadata:
+      labels:
+        app: GeeksProfile
+    spec:
+      containers:
+        - name: GeeksProfile
+          image: fares111/geeksprofile
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: Config
+                  key: MYSQL_HOST
+            - name: MYSQL_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: Config
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: Config
+                  key: MYSQL_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: GeeksProfile-service
+spec:
+  type: ClusterIP
+  selector:
+    app: GeeksProfile
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: Config
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS `geekprofile` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+    USE `geekprofile`;
+    CREATE TABLE IF NOT EXISTS `accounts` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `username` varchar(50) NOT NULL,
+      `password` varchar(255) NOT NULL,
+      `email` varchar(100) NOT NULL,
+      `organisation` varchar(100) NOT NULL,
+      `address` varchar(100) NOT NULL,
+      `city` varchar(100) NOT NULL,
+      `state` varchar(100) NOT NULL,
+      `country` varchar(100) NOT NULL,
+      `postalcode` varchar(100) NOT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+  MYSQL_HOST: "mysql"
+  MYSQL_USER: "root"
+  MYSQL_PASSWORD: "password"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /GeeksProfile
+            pathType: Prefix
+            backend:
+              service:
+                name: GeeksProfile-service
+                port:
+                  number: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqlDB
+  labels:
+    app: mysqlDB
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysqlDB
+  template:
+    metadata:
+      labels:
+        app: mysqlDB
+    spec:
+      containers:
+        - name: mysqlDB
+          image: mysql:5.7
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
+            - name: mysql-pvc
+              mountPath: /var/lib/mysql
+          env:
+            - name: MYSQL_ROOT_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: Config
+                  key: MYSQL_USER
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: Config
+                  key: MYSQL_PASSWORD
+      volumes:
+        - name: mysql-init
+          configMap:
+            name: Config
+        - name: mysql-pvc
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  type: ClusterIP
+  selector:
+    app: mysqlDB
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
