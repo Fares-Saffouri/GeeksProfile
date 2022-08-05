@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: GeeksProfile
+  name: geeksprofile
   labels:
-    app: GeeksProfile
+    app: geeksprofile
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: GeeksProfile
+      app: geeksprofile
   template:
     metadata:
       labels:
-        app: GeeksProfile
+        app: geeksprofile
     spec:
       containers:
-        - name: GeeksProfile
+        - name: geeksprofile
           image: fares111/geeksprofile
           ports:
             - containerPort: 8000
@@ -23,27 +23,27 @@ spec:
             - name: MYSQL_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: Config
+                  name: config
                   key: MYSQL_HOST
             - name: MYSQL_USER
               valueFrom:
                 configMapKeyRef:
-                  name: Config
+                  name: config
                   key: MYSQL_USER
             - name: MYSQL_PASSWORD
               valueFrom:
                 configMapKeyRef:
-                  name: Config
+                  name: config
                   key: MYSQL_PASSWORD
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: GeeksProfile-service
+  name: geeksprofile-service
 spec:
   type: ClusterIP
   selector:
-    app: GeeksProfile
+    app: geeksprofile
   ports:
     - protocol: TCP
       port: 8000
@@ -52,7 +52,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: Config
+  name: config
 data:
   init.sql: |
     CREATE DATABASE IF NOT EXISTS `geekprofile` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
@@ -84,32 +84,32 @@ spec:
   rules:
     - http:
         paths:
-          - path: /GeeksProfile
+          - path: /
             pathType: Prefix
             backend:
               service:
-                name: GeeksProfile-service
+                name: geeksprofile-service
                 port:
                   number: 8000
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysqlDB
+  name: mysqldb
   labels:
-    app: mysqlDB
+    app: mysqldb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysqlDB
+      app: mysqldb
   template:
     metadata:
       labels:
-        app: mysqlDB
+        app: mysqldb
     spec:
       containers:
-        - name: mysqlDB
+        - name: mysqldb
           image: mysql:5.7
           ports:
             - containerPort: 3306
@@ -122,17 +122,17 @@ spec:
             - name: MYSQL_ROOT_USER
               valueFrom:
                 configMapKeyRef:
-                  name: Config
+                  name: config
                   key: MYSQL_USER
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 configMapKeyRef:
-                  name: Config
+                  name: config
                   key: MYSQL_PASSWORD
       volumes:
         - name: mysql-init
           configMap:
-            name: Config
+            name: config
         - name: mysql-pvc
           persistentVolumeClaim:
             claimName: mysql-pvc
@@ -144,7 +144,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: mysqlDB
+    app: mysqldb
   ports:
     - protocol: TCP
       port: 3306
