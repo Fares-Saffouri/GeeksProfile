@@ -3,7 +3,7 @@ services:
   web:
     image: fares111/geeksprofile
     ports:
-      - "5000:5000"
+      - "8000:5000"
     environment:
       - MYSQL_HOST=mysql
       - MYSQL_USER=root
