@@ -43,7 +43,7 @@ spec:
         - name: geeksprofile
           image: fares111/geeksprofile:geeksprofile
           ports:
-            - containerPort: 8888
+            - containerPort: 8000
           env:
             - name: MYSQL_HOST
               valueFrom:
@@ -71,8 +71,8 @@ spec:
     app: geeksprofile
   ports:
     - protocol: TCP
-      port: 8888
-      targetPort: 8888
+      port: 8000
+      targetPort: 8000
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -90,7 +90,7 @@ spec:
               service:
                 name: geeksprofile-service
                 port:
-                  number: 8888
+                  number: 8000
 ---
 apiVersion: apps/v1
 kind: Deployment
