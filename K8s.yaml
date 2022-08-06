@@ -40,7 +40,7 @@ spec:
         app: geeksprofile
     spec:
       containers:
-        - name:
+        - name: geeksprofile
           image: fares111/geeksprofile:geeksprofile
           ports:
             - containerPort: 8888
