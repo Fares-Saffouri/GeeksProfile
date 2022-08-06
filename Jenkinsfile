@@ -11,7 +11,7 @@ pipeline{
 		stage('Build') {
 
 			steps {
-				sh 'sudo docker build -t fares111/geeksprofile:latest .'
+				sh 'sudo docker build -t fares111/geeksprofile:geeksprofile .'
 			}
 		}
 
@@ -25,7 +25,7 @@ pipeline{
 		stage('Push') {
 
 			steps {
-				sh 'sudo docker push fares111/geeksprofile'
+				sh 'sudo docker push fares111/geeksprofile:geeksprofile'
 			}
 		}
 	}
